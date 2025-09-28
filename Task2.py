@@ -34,8 +34,7 @@ def app():
             'Exited': [0, 1, 0, 1, 0, 1, 0, 0, 1, 1]
         }
         df = pd.DataFrame(data)
-
-    # Encode Gender
+        
     if 'Gender' in df.columns:
         encoder = LabelEncoder()
         df['Gender'] = encoder.fit_transform(df['Gender'])
@@ -54,22 +53,20 @@ def app():
         X_scaled, y, test_size=0.3, random_state=42, stratify=y
     )
 
-    # Apply SMOTE only if enough samples
     if len(y_train.value_counts()) > 1 and min(y_train.value_counts()) > 1:
         k_neighbors = min(5, min(y_train.value_counts()) - 1)
         sm = SMOTE(random_state=42, k_neighbors=k_neighbors)
         X_train, y_train = sm.fit_resample(X_train, y_train)
 
-    # 🔥 Optimized Random Forest (accuracy + speed)
     model = RandomForestClassifier(
-        n_estimators=300,       # more trees, better stability
-        max_depth=10,           # controlled depth (fast + accurate)
-        max_features="sqrt",    # good split efficiency
-        min_samples_split=5,    # avoids overfitting
-        min_samples_leaf=2,     # avoids tiny leaves
+        n_estimators=300,     
+        max_depth=10,          
+        max_features="sqrt",   
+        min_samples_split=5,   
+        min_samples_leaf=2,    
         random_state=42,
         class_weight="balanced",
-        n_jobs=-1               # use all CPU cores
+        n_jobs=-1              
     )
     model.fit(X_train, y_train)
 
@@ -77,7 +74,6 @@ def app():
     acc = accuracy_score(y_test, y_pred)
     report = classification_report(y_test, y_pred, output_dict=True)
 
-    # Run CV only if dataset is small
     cv_scores = None
     if df.shape[0] < 5000:
         cv_scores = cross_val_score(model, X_scaled, y, cv=5)
@@ -125,3 +121,4 @@ if __name__ == "__main__":
         os.system(f"streamlit run {sys.argv[0]}")
     else:
         app()
+
